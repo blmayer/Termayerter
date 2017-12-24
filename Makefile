@@ -3,17 +3,16 @@
 # ment for a new build. Currently we are compiling some object files (.o) from
 # header files (.h), which are then linked to create the final binary.
 
-SRC:=$(shell ls src/*.c)
-OBJ:=$(patsubst src/%.c, obj/%.o, $(SRC))
-
-udp-server: $(OBJ)
+udp-server: src/udp-server.c
 	@if test ! -d bin; then mkdir bin; fi
 	@echo "Now objects will be linked."
-	$(CC) $^ -o bin/$@
+	$(CC) -c $^ -o bin/$@
 
-obj/%.o: src/%.c
-	@echo "Compiling $<..."
-	$(CC) -c $< -o $@
+temp-esp: src/temp-esp.c
+	@if test ! -d firmware; then mkdir firmware; fi
+	@echo "Now objects will be linked."
+	xtensa-lx106-elf-gcc -c $^ -o bin/$@
+	esptool elf2image bin/temp-esp -o firmware/$@.bin
 
 clean:
 	@echo "Cleaning up..."
@@ -23,3 +22,4 @@ distclean:
 	@echo "Cleaning up..."
 	$(RM) obj/*.o
 	@if test -d bin; then $(RM) -rf bin; fi
+	@if test -d firmware; then $(RM) -rf firmware; fi
